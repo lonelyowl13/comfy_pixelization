@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import asyncio
+
 import colorsys
 import os
 import sys
@@ -224,23 +224,7 @@ def pil2tensor(image):
     return torch.from_numpy(np.array(image).astype(np.float32) / 255.0).unsqueeze(0)
 
 
-def wait_for_async(async_fn, loop=None):
-    res = []
 
-    async def run_async():
-        r = await async_fn()
-        res.append(r)
-
-    if loop is None:
-        try:
-            loop = asyncio.get_event_loop()
-        except:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
-    loop.run_until_complete(run_async())
-
-    return res[0]
 
 
 class Pixelization:
@@ -288,7 +272,7 @@ class Pixelization:
     OUTPUT_IS_LIST = (True,)
     OUTPUT_NODE = False
 
-    async def run_pixelization(self, image, options):
+    def run_pixelization(self, image, options):
         image = image.resize((image.width * 4 // options.pixel_size, image.height * 4 // options.pixel_size))
 
         with torch.no_grad():
@@ -339,7 +323,7 @@ class Pixelization:
                 restore_bright=restore_bright,
             )
 
-            all_images.append(wait_for_async(lambda: self.run_pixelization(image, pixelize_options)))
+            all_images.append(self.run_pixelization(image, pixelize_options))
             progressbar.update(1)
 
         return (all_images,)
